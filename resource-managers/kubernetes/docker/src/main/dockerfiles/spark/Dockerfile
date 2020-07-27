@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-ARG java_image_tag=8-jre-slim
+# ARG java_image_tag=8-jre-slim
+ARG java_image_tag=11-jre-slim
 
 FROM openjdk:${java_image_tag}
 
@@ -42,15 +43,20 @@ RUN set -ex && \
     chgrp root /etc/passwd && chmod ug+rw /etc/passwd && \
     rm -rf /var/cache/apt/*
 
-COPY jars /opt/spark/jars
+COPY dist/jars /opt/spark/jars
 COPY bin /opt/spark/bin
 COPY sbin /opt/spark/sbin
-COPY kubernetes/dockerfiles/spark/entrypoint.sh /opt/
-COPY examples /opt/spark/examples
-COPY kubernetes/tests /opt/spark/tests
-COPY data /opt/spark/data
+COPY dist/kubernetes/dockerfiles/spark/entrypoint.sh /opt/
+COPY dist/examples /opt/spark/examples
+COPY dist/kubernetes/tests /opt/spark/tests
+COPY dist/data /opt/spark/data
 
 ENV SPARK_HOME /opt/spark
+
+ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar $SPARK_HOME/jars
+ADD https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.563/aws-java-sdk-bundle-1.11.563.jar $SPARK_HOME/jars
+RUN chmod 644 $SPARK_HOME/jars/hadoop-aws-3.2.0.jar
+RUN chmod 644 $SPARK_HOME/jars/aws-java-sdk-bundle-1.11.563.jar
 
 WORKDIR /opt/spark/work-dir
 RUN chmod g+w /opt/spark/work-dir
